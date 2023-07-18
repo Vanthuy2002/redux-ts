@@ -1,4 +1,4 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice, current } from '@reduxjs/toolkit';
 import { Post } from 'src/types/blog.type';
 import { initPostList } from 'src/utils/contant';
 
@@ -46,6 +46,18 @@ const blogSlice = createSlice({
       });
       state.editPost = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addMatcher(
+        (action) => action.type.includes('cancel'),
+        (state) => {
+          console.log(current(state.postList));
+        }
+      )
+      .addDefaultCase((state, actions) => {
+        console.log(`action : ${actions.type}`, state.postList);
+      });
   },
 });
 
