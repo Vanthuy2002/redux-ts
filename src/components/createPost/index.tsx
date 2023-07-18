@@ -3,9 +3,13 @@ import Button from '../Button';
 import Label from '../Label';
 import Input from '../input';
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from 'src/store';
-import { addPost, cancelEditPost, updatePost } from 'src/reducer/Blog.slice';
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from 'src/store';
+import {
+  cancelEditPost,
+  createPost,
+  updatePostWithApi,
+} from 'src/reducer/Blog.slice';
 
 const initalValues: Post = {
   id: '',
@@ -17,7 +21,7 @@ const initalValues: Post = {
 
 const CreatePost = () => {
   const [formVal, setFormVal] = useState<Post>(initalValues);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const editPost = useSelector((state: RootState) => state?.blog.editPost);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,10 +33,9 @@ const CreatePost = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editPost) {
-      dispatch(updatePost(formVal));
+      dispatch(updatePostWithApi(formVal));
     } else {
-      const formDataWithId = { ...formVal, id: new Date().toISOString() };
-      dispatch(addPost(formDataWithId));
+      dispatch(createPost(formVal));
       setFormVal(initalValues);
     }
   };

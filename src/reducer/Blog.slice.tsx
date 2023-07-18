@@ -1,6 +1,6 @@
-import { PayloadAction, createSlice, current } from '@reduxjs/toolkit';
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Post } from 'src/types/blog.type';
-import { initPostList } from 'src/utils/contant';
+import { https } from 'src/utils/https';
 
 interface blogState {
   postList: Post[];
@@ -8,24 +8,52 @@ interface blogState {
 }
 
 const initialState: blogState = {
-  postList: initPostList,
+  postList: [],
   editPost: null,
 };
+
+const getPostList = createAsyncThunk(
+  'blog/getPostList',
+  async (_, thunkApi) => {
+    const res = await https.get<Post[]>('/blog', { signal: thunkApi.signal });
+    return res.data;
+  }
+);
+
+const createPost = createAsyncThunk(
+  'blog/createPost',
+  async (body: Post, thunkApi) => {
+    const res = await https.post<Post>('/blog', body, {
+      signal: thunkApi.signal,
+    });
+    return res.data;
+  }
+);
+
+const updatePostWithApi = createAsyncThunk(
+  'blog/updatePost',
+  async (body: Post, thunkApi) => {
+    const res = await https.put<Post>(`/blog/${body.id}`, body, {
+      signal: thunkApi.signal,
+    });
+    return res.data;
+  }
+);
+
+const deletePostWithApi = createAsyncThunk(
+  'blog/deletePost',
+  async (id: string, thunkApi) => {
+    const res = await https.delete<string>(`/blog/${id}`, {
+      signal: thunkApi.signal,
+    });
+    return res.data;
+  }
+);
 
 const blogSlice = createSlice({
   name: 'blog',
   initialState,
   reducers: {
-    addPost: (state, actions: PayloadAction<Post>) => {
-      state.postList.push(actions.payload);
-    },
-    deletePost: (state, actions: PayloadAction<string>) => {
-      const postId = actions.payload;
-      const foundIndex = state.postList.findIndex((post) => post.id === postId);
-      if (foundIndex !== -1) {
-        state.postList.splice(foundIndex, 1);
-      }
-    },
     startEditBlog: (state, actions: PayloadAction<string>) => {
       const postId = actions.payload;
       const postWantEdit =
@@ -35,38 +63,36 @@ const blogSlice = createSlice({
     cancelEditPost: (state) => {
       state.editPost = null;
     },
-    updatePost: (state, actions: PayloadAction<Post>) => {
-      const postId = actions.payload?.id;
-      state.postList.some((post, index) => {
-        if (post.id === postId) {
-          state.postList[index] = actions.payload;
-          return true;
-        }
-        return false;
-      });
-      state.editPost = null;
-    },
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        (action) => action.type.includes('cancel'),
-        (state) => {
-          console.log(current(state.postList));
-        }
-      )
-      .addDefaultCase((state, actions) => {
-        console.log(`action : ${actions.type}`, state.postList);
+      .addCase(getPostList.fulfilled, (state, actions) => {
+        state.postList = actions.payload;
+      })
+      .addCase(createPost.fulfilled, (state, actions) => {
+        state.postList.push(actions.payload);
+      })
+      .addCase(updatePostWithApi.fulfilled, (state, actions) => {
+        state.postList.find((post, index) => {
+          if (post.id === actions.payload.id) {
+            state.postList[index] = actions.payload;
+            return true;
+          }
+          return false;
+        });
+        state.editPost = null;
+      })
+      .addCase(deletePostWithApi.fulfilled, (state, actions) => {
+        const deleteIndex = state.postList.findIndex(
+          (post) => post.id === actions.meta.arg
+        );
+        state.postList.splice(deleteIndex, 1);
       });
   },
 });
 
-export const {
-  addPost,
-  cancelEditPost,
-  deletePost,
-  startEditBlog,
-  updatePost,
-} = blogSlice.actions;
+export const { cancelEditPost, startEditBlog } = blogSlice.actions;
+
+export { getPostList, createPost, updatePostWithApi, deletePostWithApi };
 
 export default blogSlice.reducer;

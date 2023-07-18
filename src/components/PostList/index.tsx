@@ -1,10 +1,20 @@
+import { useEffect } from 'react';
 import Header from '../Layout/Header';
 import PostItem from '../PostItem';
 import { useSelector } from 'react-redux';
-import { RootState } from 'src/store';
+import { RootState, useAppDispatch } from 'src/store';
+import { getPostList } from 'src/reducer/Blog.slice';
 
 const PostList = () => {
   const posts = useSelector((state: RootState) => state?.blog?.postList);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const promise = dispatch(getPostList());
+    return () => {
+      promise.abort();
+    };
+  }, [dispatch]);
 
   return (
     <div className='py-6 bg-white sm:py-8 lg:py-12'>

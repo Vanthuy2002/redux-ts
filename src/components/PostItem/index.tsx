@@ -1,17 +1,18 @@
 import { Post } from 'src/types/blog.type';
-import { useDispatch } from 'react-redux';
-import { deletePost, startEditBlog } from 'src/reducer/Blog.slice';
+
+import { deletePostWithApi, startEditBlog } from 'src/reducer/Blog.slice';
+import { useAppDispatch } from 'src/store';
 
 type PostItemType = {
   posts: Post;
 };
 
 const PostItem = ({ posts }: PostItemType) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { title, imgUrl, desc, id } = posts;
 
   const handleRemove = (postId: string) => {
-    dispatch(deletePost(postId));
+    dispatch(deletePostWithApi(postId));
   };
 
   const handleEdit = (postId: string) => {
