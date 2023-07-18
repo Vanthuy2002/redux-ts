@@ -1,11 +1,9 @@
-import PostList from './components/PostList';
-import CreatePost from './components/createPost';
+import Blog from './pages/Blog';
 
 function App() {
   return (
     <main className='main p-5'>
-      <CreatePost />
-      <PostList />
+      <Blog></Blog>
     </main>
   );
 }
