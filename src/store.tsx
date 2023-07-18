@@ -1,8 +1,8 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import blogReducer from './reducer/Blog.reducer';
+import BlogSlice from './reducer/Blog.slice';
 
 const reducer = combineReducers({
-  blog: blogReducer,
+  blog: BlogSlice,
 });
 
 const store = configureStore({

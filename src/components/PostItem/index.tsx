@@ -1,6 +1,6 @@
 import { Post } from 'src/types/blog.type';
 import { useDispatch } from 'react-redux';
-import { deletePost, startEditBlog } from 'src/reducer/Blog.reducer';
+import { deletePost, startEditBlog } from 'src/reducer/Blog.slice';
 
 type PostItemType = {
   posts: Post;

@@ -4,8 +4,8 @@ import Label from '../Label';
 import Input from '../input';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addPost, cancelEditPost, updatePost } from 'src/reducer/Blog.reducer';
 import { RootState } from 'src/store';
+import { addPost, cancelEditPost, updatePost } from 'src/reducer/Blog.slice';
 
 const initalValues: Post = {
   id: '',
