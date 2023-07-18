@@ -2,12 +2,13 @@ import { Post } from 'src/types/blog.type';
 import Button from '../Button';
 import Label from '../Label';
 import Input from '../input';
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { addPost } from 'src/reducer/Blog.reducer';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addPost, cancelEditPost, updatePost } from 'src/reducer/Blog.reducer';
+import { RootState } from 'src/store';
 
 const initalValues: Post = {
-  id: ' ',
+  id: '',
   desc: '',
   imgUrl: '',
   title: '',
@@ -17,6 +18,7 @@ const initalValues: Post = {
 const CreatePost = () => {
   const [formVal, setFormVal] = useState<Post>(initalValues);
   const dispatch = useDispatch();
+  const editPost = useSelector((state: RootState) => state?.blog.editPost);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormVal((prev) => {
@@ -26,10 +28,24 @@ const CreatePost = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formDataWithId = { ...formVal, id: new Date().toISOString() };
-    dispatch(addPost(formDataWithId));
-    setFormVal(initalValues);
+    if (editPost) {
+      dispatch(updatePost(formVal));
+    } else {
+      const formDataWithId = { ...formVal, id: new Date().toISOString() };
+      dispatch(addPost(formDataWithId));
+      setFormVal(initalValues);
+    }
   };
+  // cancel update
+  const handleCancelActions = () => {
+    dispatch(cancelEditPost());
+  };
+
+  // nếu có edit post => đổ data ra form , không thì lấy value khởi tạo
+  useEffect(() => {
+    setFormVal(editPost || initalValues);
+    document.body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [editPost]);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -65,7 +81,7 @@ const CreatePost = () => {
         ></textarea>
       </div>
 
-      <div className='flex items-center mb-6 gap-3'>
+      <div className='flex items-center gap-3 mb-6'>
         <input
           id='publish'
           type='checkbox'
@@ -80,7 +96,14 @@ const CreatePost = () => {
       </div>
 
       <div className='flex items-center gap-3'>
-        <Button>Publish</Button>
+        {editPost ? (
+          <>
+            <Button type='submit'>Update</Button>
+            <Button onClick={handleCancelActions}>Cancel</Button>
+          </>
+        ) : (
+          <Button type='submit'>Publish</Button>
+        )}
       </div>
     </form>
   );

@@ -18,6 +18,10 @@ const addPost = createAction<Post>('blog/addPost');
 const deletePost = createAction<string>('blog/deletePost');
 // start edit post
 const startEditBlog = createAction<string>('blog/editPost');
+// cancel editting post
+const cancelEditPost = createAction('blog/cancelEdit');
+// update post
+const updatePost = createAction<Post>('blog/updatePost');
 
 const blogReducer = createReducer(initial, (builder) => {
   builder
@@ -36,9 +40,23 @@ const blogReducer = createReducer(initial, (builder) => {
       const postWantEdit =
         state.postList.find((post) => post.id === postId) || null;
       state.editPost = postWantEdit;
+    })
+    .addCase(cancelEditPost, (state) => {
+      state.editPost = null;
+    })
+    .addCase(updatePost, (state, actions) => {
+      const postId = actions.payload?.id;
+      state.postList.some((post, index) => {
+        if (post.id === postId) {
+          state.postList[index] = actions.payload;
+          return true;
+        }
+        return false;
+      });
+      state.editPost = null;
     });
 });
 
-export { addPost, deletePost, startEditBlog };
+export { addPost, deletePost, startEditBlog, cancelEditPost, updatePost };
 
 export default blogReducer;
