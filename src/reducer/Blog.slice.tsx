@@ -4,8 +4,10 @@ import {
   createAsyncThunk,
   createSlice,
 } from '@reduxjs/toolkit';
+import axios from 'axios';
 import { Post } from 'src/types/blog.type';
 import { https } from 'src/utils/https';
+import { toast } from 'react-toastify';
 
 interface blogState {
   postList: Post[];
@@ -47,10 +49,16 @@ const createPost = createAsyncThunk(
 const updatePostWithApi = createAsyncThunk(
   'blog/updatePost',
   async (body: Post, thunkApi) => {
-    const res = await https.put<Post>(`/blog/${body.id}`, body, {
-      signal: thunkApi.signal,
-    });
-    return res.data;
+    try {
+      const res = await https.put<Post>(`/blog/${body.id}`, body, {
+        signal: thunkApi.signal,
+      });
+      return res.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.warn(`${error.message}, try again late!`);
+      }
+    }
   }
 );
 
@@ -88,7 +96,7 @@ const blogSlice = createSlice({
       })
       .addCase(updatePostWithApi.fulfilled, (state, actions) => {
         state.postList.find((post, index) => {
-          if (post.id === actions.payload.id) {
+          if (post.id === actions?.payload?.id) {
             state.postList[index] = actions.payload;
             return true;
           }
@@ -109,14 +117,10 @@ const blogSlice = createSlice({
           state.currentRequetsId = actions.meta.requestId;
         }
       )
-      .addMatcher<FulfilledAction>(
-        (actions) => actions.type.endsWith('/fulfilled'),
-        (state) => {
-          state.loading = false;
-        }
-      )
-      .addMatcher<RejectedAction>(
-        (actions) => actions.type.endsWith('/rejected'),
+      .addMatcher<RejectedAction | FulfilledAction>(
+        (actions) =>
+          actions.type.endsWith('/rejected') ||
+          actions.type.endsWith('/fulfilled'),
         (state, actions) => {
           if (
             state.loading &&

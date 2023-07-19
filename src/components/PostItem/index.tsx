@@ -1,4 +1,5 @@
 import { Post } from 'src/types/blog.type';
+import { toast } from 'react-toastify';
 
 import { deletePostWithApi, startEditBlog } from 'src/reducer/Blog.slice';
 import { useAppDispatch } from 'src/store';
@@ -11,8 +12,9 @@ const PostItem = ({ posts }: PostItemType) => {
   const dispatch = useAppDispatch();
   const { title, imgUrl, desc, id } = posts;
 
-  const handleRemove = (postId: string) => {
-    dispatch(deletePostWithApi(postId));
+  const handleRemove = async (postId: string) => {
+    await dispatch(deletePostWithApi(postId));
+    toast.success('Delete successfully!!');
   };
 
   const handleEdit = (postId: string) => {

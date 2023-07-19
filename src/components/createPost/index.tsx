@@ -10,6 +10,7 @@ import {
   createPost,
   updatePostWithApi,
 } from 'src/reducer/Blog.slice';
+import { toast } from 'react-toastify';
 
 const initalValues: Post = {
   id: '',
@@ -30,18 +31,21 @@ const CreatePost = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editPost) {
-      dispatch(updatePostWithApi(formVal));
+      await dispatch(updatePostWithApi(formVal));
+      toast.success('Update post successfully!!');
     } else {
-      dispatch(createPost(formVal));
+      await dispatch(createPost(formVal));
       setFormVal(initalValues);
+      toast.success('Create post successfully!!');
     }
   };
   // cancel update
   const handleCancelActions = () => {
     dispatch(cancelEditPost());
+    toast.info('Cancel actions!!');
   };
 
   // nếu có edit post => đổ data ra form , không thì lấy value khởi tạo
