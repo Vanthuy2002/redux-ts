@@ -1,16 +1,30 @@
-import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  AsyncThunk,
+  PayloadAction,
+  createAsyncThunk,
+  createSlice,
+} from '@reduxjs/toolkit';
 import { Post } from 'src/types/blog.type';
 import { https } from 'src/utils/https';
 
 interface blogState {
   postList: Post[];
   editPost: Post | null;
+  loading: boolean;
+  currentRequetsId: undefined | string;
 }
 
 const initialState: blogState = {
   postList: [],
   editPost: null,
+  loading: false,
+  currentRequetsId: undefined,
 };
+
+type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
+type PendingAction = ReturnType<GenericAsyncThunk['pending']>;
+type RejectedAction = ReturnType<GenericAsyncThunk['rejected']>;
+type FulfilledAction = ReturnType<GenericAsyncThunk['fulfilled']>;
 
 const getPostList = createAsyncThunk(
   'blog/getPostList',
@@ -87,7 +101,32 @@ const blogSlice = createSlice({
           (post) => post.id === actions.meta.arg
         );
         state.postList.splice(deleteIndex, 1);
-      });
+      })
+      .addMatcher<PendingAction>(
+        (actions) => actions.type.endsWith('/pending'),
+        (state, actions) => {
+          state.loading = true;
+          state.currentRequetsId = actions.meta.requestId;
+        }
+      )
+      .addMatcher<FulfilledAction>(
+        (actions) => actions.type.endsWith('/fulfilled'),
+        (state) => {
+          state.loading = false;
+        }
+      )
+      .addMatcher<RejectedAction>(
+        (actions) => actions.type.endsWith('/rejected'),
+        (state, actions) => {
+          if (
+            state.loading &&
+            state.currentRequetsId === actions.meta.requestId
+          ) {
+            state.loading = false;
+            state.currentRequetsId = undefined;
+          }
+        }
+      );
   },
 });
 
